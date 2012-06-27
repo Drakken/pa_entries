@@ -1,0 +1,25 @@
+
+Revised parser:
+
+implem:
+      [ [ "#"; n = a_LIDENT; dp = opt_expr; semi ->
+            ([ <:str_item< # $n$ $dp$ >> ], stopped_at _loc)
+        | si = str_item; semi; (sil, stopped) = SELF -> ([si :: sil], stopped)
+        | `EOI -> ([], None)
+      ] ]
+
+str_item:
+      [ "top" ...
+        | "module"; i = a_UIDENT; mb = module_binding0 ->
+            <:str_item< module $i$ = $mb$ >>
+        | "module"; "rec"; mb = module_binding ->
+            <:str_item< module rec $mb$ >>
+        | "module"; "type"; i = a_ident; "="; mt = module_type ->
+            <:str_item< module type $i$ = $mt$ >>
+
+module_binding0: ... "="; me = module_expr
+
+module_expr: ... "struct"; st = str_items; "end"
+
+str_items: ... LIST0 [ st = str_item; semi -> st ]
+
